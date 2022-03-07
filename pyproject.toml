@@ -1,0 +1,18 @@
+[tool.pyright]
+extraPaths = ["code"]
+
+
+[tool.black]
+line-length = 120
+target-version = ["py39"]
+
+
+[tool.isort]
+profile="black"
+py_version=39
+line_length=120
+skip_gitignore=true
+
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

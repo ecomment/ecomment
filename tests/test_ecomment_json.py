@@ -1,60 +1,7 @@
-# The Comments File Format
+from ecomment_json import json_to_markup, markup_to_json
 
-There should be a universal code commenting file format that all the IDEs can
-read and write, just like diff files. That way someone can review your MR in
-their IDE and send you the comments file, which you import into your IDE where
-you can see the comments and edit the code right there.
-
-If done right, this could not just be limited to code, but to any text file.
-And there could be a garden of applications for reading commented text files
-(well, reading text files along with the comments intended for that file in a
-separate comments file).
-
-All the file needs to contain is a list of line numbers and comments to go with
-them. The applications that use these files are responsible keeping track of
-lines that the user adds and bumping the line number for the comments found
-after the newly added line. They could allow the user to drag the comments
-around as well.
-
-This avoids the complexity and foolhardy-ness of trying to anchor the text of
-the comment somewhere based on some snippet of the text of the file. Some files
-might not have a unique line among them to anchor too. And when you edit the
-anchor you do not want the comment to just disappear. There is an interesting
-case for expanding from just a line number and a comment, to a line number, a
-character range, and a comment.
-
-Here is the data we can take for each comment:
-
-- A comment (required, obviously)
-- A single line number (optional, you should be able to comment on the whole
-  file)
-  - If a line number, an optional character range.
-- A range of line numbers (so you can comment on a block).
-- Two (line number, character) tuples for the start/end of a very precise block
-  (may be useful for commending JSON files, for example).
-- Before/after context (optional)
-- Application defined metadata like "resolved"/"unresolved"
-- Comment format metadata like "html"/"gitlab-markdown-1.2.3"
-
-Here is what you can put in each comment file:
-
-- A file hash (strongly encouraged!)
-- A file name (also strongly encouraged!)
-- A git commit hash (strongly encouraged if the file is in a Git repository!)
-
-The comments would be plan text. It would be up to the application if they
-wanted to render it as some markup language.
-
-## Use Cases
-
-  Comment on some code in the comfort of your IDE and then share the comments
-  with your teammate.
-- Edit your code with the comments from the merge request right in your IDE.
-
-## Example
-
-```
-HEADER
+example_ecomment = """
+FILE_INFO
 
 # Here is all the metadata for the comment file as a whole.
 filename: test.txt
@@ -129,5 +76,31 @@ format: plain text
 >  todo = input("What are you going to do?")
 
 -- END COMMENT --
-```
+"""
 
+
+def test_markup_to_json_no_fail():
+    json = markup_to_json(example_ecomment)
+    assert len(json["files"]) == 1
+    file = json["files"][0]
+    assert len(file["comments"]) == 3
+    assert file["file-data"]["filename"] == "test.txt"
+    assert file["file-data"]["filehash"] == "24329wfpoijr3aw90843489"
+    assert file["file-data"]["gitcommit"] == "1230498uij4nq3wfe4frq3k40q39o8uir"
+    assert (
+        file["comments"][-1]["content"]
+        == """
+Well this is a depressing program.
+
+It's also depressing that we cannot see these comments in the same
+context, since they are right next to each other that would be kind
+of nice.
+""".strip()
+    )
+
+
+def test_markup_to_json_and_back():
+    first_json = markup_to_json(example_ecomment)
+    markup = json_to_markup(first_json)
+    second_json = markup_to_json(markup)
+    assert first_json == second_json

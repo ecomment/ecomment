@@ -1,26 +1,29 @@
 import argparse
-from json.decoder import JSONDecodeError
-import sys
-import os
 import json
+import os
+import re
+import sys
+from json.decoder import JSONDecodeError
+from typing import Any
 
 
-def json_to_markup(json_data):
+def json_to_markup(json_data: dict[str, Any]):
     markup = ""
     for file in json_data["files"]:
         markup += "FILE_INFO\n\n"
         for key, value in file["file-data"].items():
+
             # Verify and stringify value.
             assert isinstance(
                 value, (str, int, float)
             ), f"File header info should be simple data (i.e. not like a list): key={key}, value={value}"
             value = str(value)
-            assert '\n' not in value, f"File header values should have have newlines: key={key}, value={value}"
+            assert "\n" not in value, f"File header values should have have newlines: key={key}, value={value}"
 
             # Verify header key
             assert isinstance(key, str), f"File header keys should be strings: key={key}"
-            assert '\n' not in value, f"File header values should have have newlines: key={key}, value={value}"
-            assert ':' not in key, f"File header keys cannot contain colon (:) characters: key={key}"
+            assert "\n" not in value, f"File header values should have have newlines: key={key}, value={value}"
+            assert ":" not in key, f"File header keys cannot contain colon (:) characters: key={key}"
 
             markup += f"{key}: {value}\n"
         markup += "\n"
@@ -33,41 +36,40 @@ def json_to_markup(json_data):
             markup += "\n"  # Extra line to between comment metadata and context/content.
             if "before-context" in comment:
                 assert isinstance(comment["before-context"], str)
-                lines = comment["before-context"].split('\n')
+                lines = comment["before-context"].split("\n")
                 for line in lines[:-1]:
                     markup += f">  {line}\n"
                 markup += f">> {lines[-1]}\n"
 
             # Add the actual comment content.
-            assert "context" in comment
-            markup += '------------------------------------------------------------------------\n'
-            lines = comment.split("\n")
+            assert "content" in comment
+            markup += "------------------------------------------------------------------------\n"
+            lines = comment["content"].split("\n")
             for line in lines:
                 markup += f"  {line}\n"
-            markup += '------------------------------------------------------------------------\n'
+            markup += "------------------------------------------------------------------------\n"
 
             # Add the after-context
             if "after-context" in comment:
                 assert isinstance(comment["after-context"], str)
-                lines = comment["after-context"].split('\n')
+                lines = comment["after-context"].split("\n")
                 for line in lines:
                     markup += f">  {line}\n"
 
             markup += "-- END COMMENT --\n\n"
-    return markup.strip() + '\n'  # Make sure there is just one new line at the end of the file.
+    return markup.strip() + "\n"  # Make sure there is just one new line at the end of the file.
 
 
-def markup_to_json(markup):
+def markup_to_json(markup: str):
     states = {
         "between_files": True,
         "in_file_data": True,
         "in_comments": True,
         "between_files": True,
-        "between_files": True,
     }
     json_data = {"files": []}
     state = "between_files"
-    lines = markup.split()
+    lines = markup.split("\n")
     index = 0
 
     # Use `while` loop instead of `for` loop so we can bump state without
@@ -80,25 +82,26 @@ def markup_to_json(markup):
         line = lines[index]
 
         # Skip comment lines. They must start with '#', no space first!
-        if line[:1] == "#":
+        if line.startswith("#"):
             pass
 
-        elif state == "bewteen_files":
-            if line[:9] == "FILE_INFO":
+        elif state == "between_files":
+            if line == "FILE_INFO":
                 json_data["files"].append({"comments": [], "file-data": {}})
                 state = "in_file_data"
             else:
-                assert len(line.strip()) > 0
+                assert not line.strip()  # Line should be empty.
 
         elif state == "in_file_data":
-            if line[:8] == "COMMENTS":
+            if line.rstrip() == "COMMENTS":
                 state = "in_comments"
-            elif len(line.strip()) == 0:
-               pass
-            elif ':' in line:
-                parts = line.split(":")
-                header_name = parts[0]
-                header_value = ':'.join(parts[1:])
+            elif not line.strip():
+                pass
+            elif ":" in line:
+                match = re.match("(^[^:]+):(.*)$", line)
+                assert match is not None
+                header_name = match.group(1).strip()
+                header_value = match.group(2).strip()
                 # There should not be duplicate filenames.
                 assert header_name not in json_data["files"][-1]["file-data"]
                 json_data["files"][-1]["file-data"][header_name] = header_value
@@ -106,48 +109,50 @@ def markup_to_json(markup):
                 raise ValueError(f"Invalid line in the FILE_INFO section: {line}")
 
         elif state == "in_comments":
-            if line[:9] == "FILE_INFO":
+            if line == "FILE_INFO":
                 state = "in_file_data"
-            elif line[:19] == "-- START-COMMENT --":
+            elif line.strip() == "-- START COMMENT --":
                 state = "in_comment_header"
                 json_data["files"][-1]["comments"].append({})
             else:
-                assert len(line.strip()) == 0
+                assert not line.strip(), f"Invalid line in comments: {line}"
 
         elif state == "in_comment_header":
-            if line[:1] == '>':
+            if line.startswith(">"):
                 state = "in_comment_before_context"
                 continue
-            elif line[:1] == '-':
-                state = 'in_comment_content'
-            elif line.startswith('line:'):
-                assert 'line' not in json_data["files"][-1]["comments"][-1]
-                json_data["files"][-1]["comments"][-1]['line'] = ':'.join(line.split(':')[1:]).strip()
-            elif format.startswith('format:'):
-                assert 'format' not in json_data["files"][-1]["comments"][-1]
-                json_data["files"][-1]["comments"][-1]['format'] = ':'.join(line.split(':')[1:]).strip()
+            elif line.startswith("-"):
+                state = "in_comment_content"
+            elif line.startswith("line:"):
+                assert "line" not in json_data["files"][-1]["comments"][-1]
+                json_data["files"][-1]["comments"][-1]["line"] = ":".join(line.split(":")[1:]).strip()
+            elif line.startswith("format:"):
+                assert "format" not in json_data["files"][-1]["comments"][-1]
+                json_data["files"][-1]["comments"][-1]["format"] = ":".join(line.split(":")[1:]).strip()
+            elif not line.strip():
+                pass
             else:
                 raise ValueError(f"Invalid comment_header line: {line}")
 
         elif state == "in_comment_before_context":
-            if line.startswith('>'):
+            if line.startswith(">"):
                 comment = json_data["files"][-1]["comments"][-1]
                 line_data = line[3:]  # Strip off '>  ' or '>> ' from the begining.
-                if 'before-context' in comment:
-                    comment['before-context'] += "\n" + line_data
+                if "before-context" in comment:
+                    comment["before-context"] += "\n" + line_data
                 else:
-                    comment['before-context'] = line_data
-            elif line.startswith('-'):
+                    comment["before-context"] = line_data
+            elif line.startswith("-"):
                 state = "in_comment_content"
             else:
                 raise ValueError(f"Invalid comment_before_context line: {line}")
 
         elif state == "in_comment_content":
-            if line.startswith('-'):
+            if line.startswith("-"):
                 state = "after_comment_content"
-            elif line.startswith('  ') or len(line) == 0:
+            elif line.startswith("  ") or not line:
                 comment = json_data["files"][-1]["comments"][-1]
-                line_data = '' if len(line) == 0 else line[2:]  # Strip off '  '.
+                line_data = "" if len(line) == 0 else line[2:]  # Strip off '  '.
                 if "content" in comment:
                     comment["content"] += "\n" + line_data
                 else:
@@ -156,97 +161,40 @@ def markup_to_json(markup):
                 raise ValueError(f"Invalid comment_content line: {line}")
 
         elif state == "after_comment_content":
-            if line.startswith('>'):
+            if line.startswith(">"):
                 state = "in_comment_after_context"
-            elif line[:17] == '-- END-COMMENT --':
+                continue  # Use this line again on the next iteration.
+            elif line.strip() == "-- END COMMENT --":
                 state = "in_comments"
-            elif len(line) == 0:
-                continue
+            elif not line.strip():
+                pass
             else:
                 raise ValueError(f"Invalid after_comment_content line: {line}")
 
         elif state == "in_comment_after_context":
-            pass
+            if line.startswith(">"):
+                comment = json_data["files"][-1]["comments"][-1]
+                line_data = line[3:]  # Strip off '>  ' or '>> ' from the begining.
+                if "after-context" in comment:
+                    comment["after-context"] += "\n" + line_data
+                else:
+                    comment["after-context"] = line_data
+            elif line.strip() == "-- END COMMENT --":
+                state = "in_comments"
+            elif not line.strip():
+                pass
+            else:
+                raise ValueError(f"Unexpected in_comment_after_context line: {line}")
 
         else:
             raise ValueError(f"Unhandled or invalid parser state: {state}")
 
         index += 1
         if index == len(lines):
-            assert state == "in_comments"
+            assert state == "in_comments", f"Ending in unexpected state: {state}"
             break
-    """
 
-
-
-    -- START COMMENT --
-    line: 123
-    format: plain text
-
-    # Give some context preceeding the comment.
-    >  Context is added like this. You can put as much context in here as you want.
-    >  But we recommend just a couple lines. Mostly these files will be consumed by
-    >  some application that shows the comments in the the file, with all the context
-    >  there is. But text is cheap. So why not make the comment files themselves
-    >> readable contain a small amount of context?
-    ---
-      This is a comment. Please read carefully.
-
-      You should always put the commented on line(s) in double >>
-    ---
-    >  These are the lines after the comment. Just a couple to make things readable.
-    >  > Q: Why did the dog catcher always catch the big dogs?
-    >  > A: Because he got paid by the pound.
-    >  (See how `>` characters at the begning of the context line does not break anything.
-
-    -- END COMMENT --
-
-    # This is probably not the best way to do it.
-
-    -- START COMMENT --
-    line: 432
-    format: plain text
-
-    >  for year in range(70):
-    >      for month in range(12):
-    >          for day in range(30):
-    >              days_to_live += 1
-    ------------------------------------------------------------------------
-      I think there is a more efficient way of doing this.
-
-      Also, as you can see, if I put a line like this in the comment
-      ----------------------------------------------------------------------
-      It looks kind of messy, but it does not break the format because of the
-      white space before.
-    ------------------------------------------------------------------------
-    >
-    >  days_left = days_to_live - days_lived
-    >  print(f"You have {days_left} days left to live."
-
-    -- END COMMENT --
-
-
-    -- START COMMENT --
-    line: 433
-    format: plain text
-
-    >          for day in range(30):
-    >              days_to_live += 1
-    >
-    >  days_left = days_to_live - days_lived
-    ------------------------------------------------------------------------
-      Well this is a depressing program.
-
-      It's also depressing that we cannot see these comments in the same
-      context, since they are right next to each other that would be kind
-      of nice.
-    ------------------------------------------------------------------------
-    >  print(f"You have {days_left} days left to live."
-    >  todo = input("What are you going to do?")
-
-    -- END COMMENT --
-    """
-    pass
+    return json_data
 
 
 if __name__ == "__main__":
