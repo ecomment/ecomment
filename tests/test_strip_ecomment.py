@@ -1,6 +1,6 @@
 import json
 
-from ecomment_json import markup_to_json, json_to_markup
+from ecomment_json import json_to_markup
 from strip_ecomment import strip_file
 
 

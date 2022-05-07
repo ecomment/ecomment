@@ -3,14 +3,16 @@ A function for stripping ecomment files.
 """
 import re
 from dataclasses import dataclass
-from typing import Optional
+from typing import Literal, Optional
 
 # There are obviously edge cases that this does not solve.
 # But for now I just want to get it working.
 multiline_regex = re.compile(r"\s*#\s*ecomment:[ ]?(.*)")
 inline_regex = re.compile(r".*#\s*ecomment:[ ]?(.*)")
-inline_regex_striper = re.compile(r".*([\s]?#\s*ecomment:[ ]?.*)")
+inline_regex_striper = re.compile(r".*(\s*#\s*ecomment:[ ]?.*)")
 comment_line_regex = re.compile(r"\s*#[ ]?(.*)")
+ecomment_start_regex = re.compile(r"\s*#\s*@ecomment-start")
+ecomment_end_regex = re.compile(r"\s*#\s*@ecomment-end")
 
 
 @dataclass
@@ -19,7 +21,7 @@ class Comment:
     line_number: int
     content: list[str]
     after_context: str
-    inline: bool
+    type: Literal["inline", "multiline", "start_end"]
 
     def json(self):
         return {
@@ -27,7 +29,7 @@ class Comment:
             "line_number": self.line_number,
             "content": self.content,
             "after_context": self.after_context,
-            "inline": self.inline,
+            "type": self.type,
         }
 
 
@@ -69,7 +71,7 @@ def strip_file(
                         line_number=index,
                         content=[] if content_start.strip() == "" else [content_start],
                         after_context="",
-                        inline=False,
+                        type="multiline",
                     )
                 )
                 state = "in_multiline_comment"
@@ -88,7 +90,7 @@ def strip_file(
                         line_number=index,
                         content=[content_start],
                         after_context="\n".join(line[index + 1 : index + 1 + after_context]),
-                        inline=True,
+                        type="inline",
                     )
                 )
                 # No need to update the state since we return to the previous state immediately.
@@ -99,7 +101,23 @@ def strip_file(
                 striped_lines.append(line.removesuffix(to_strip))
                 continue
 
-        if state == "in_multiline_comment":
+            match = ecomment_start_regex.match(line)
+            if match is not None:
+                state = "in_start_end_ecomment"
+                comments.append(
+                    Comment(
+                        before_context="\n".join(line[max(index - before_context, 0) : index]),
+                        line_number=index,
+                        content=[],
+                        after_context="",
+                        type="start_end",
+                    )
+                )
+                continue
+
+            striped_lines.append(line)
+
+        elif state == "in_multiline_comment":
             comment_match = comment_line_regex.match(line)
             if comment_match is None:
                 state = "outside_comments"
@@ -107,6 +125,20 @@ def strip_file(
             else:
                 content = comment_match.group(1)
                 comments[-1].content.append(content)
+
+        elif state == "in_start_end_ecomment":
+            comment_match = comment_line_regex.match(line)
+            if comment_match is None:
+                raise NotImplementedError("Unterminated start_end comment")
+            content = comment_match.group(1)
+            if content.startswith("@ecomment-end"):
+                state = "outside_comments"
+                comments[-1].after_context = "\n".join(line[index + 1 : index + 1 + after_context])
+            else:
+                comments[-1].content.append(content)
+
+        else:
+            raise ValueError(f"Unknown state: {state}")
 
     ecomment_file_json = {
         "file-data": {},
