@@ -12,7 +12,7 @@ CONTEXT_DEFAULT = 5
 UNSET_CONTEXT = -1
 
 
-def strip_program(cli_args):
+def read_program(cli_args):
     # Parse the command line arguments.
     parser = argparse.ArgumentParser(prog="ecomment strip")
     parser.add_argument("file", nargs="+")
@@ -31,6 +31,7 @@ def strip_program(cli_args):
     )
     parser.add_argument("-o", "--output", type=str, default=None, help="Output file")
     parser.add_argument("-j", "--json", action="store_true", help="Output JSON")
+    parser.add_argument("-s", "--strip", action="store_true", help="Strip the comments out of the files.")
     args = parser.parse_args(cli_args)
 
     # Deduce the context size to save.
@@ -43,8 +44,9 @@ def strip_program(cli_args):
     for file in args.file:
         with open(file, "r") as f:
             ecomments_json, stripped_content = strip_file(f.read(), before_context, after_context, file)
-        with open(file, "w") as f:
-            f.write(stripped_content)
+        if args.strip:
+            with open(file, "w") as f:
+                f.write(stripped_content)
         ecomments.append(ecomments_json)
 
     # Format ecomments as markdown or JSON text.
@@ -62,10 +64,6 @@ def strip_program(cli_args):
         print(formatted_output)
 
 
-def read_program(cli_args):
-    pass
-
-
 def load_program(cli_rgs):
     pass
 
@@ -75,10 +73,8 @@ if __name__ == "__main__":
     parser.add_argument("program", help="strip, read, or load/write")
     args = parser.parse_args(sys.argv[1:2])
 
-    assert args.program in ("strip", "read", "write", "load")
-    if args.program == "strip":
-        strip_program(sys.argv[2:])
+    assert args.program in ("read", "write")
     if args.program == "read":
         read_program(sys.argv[2:])
-    if args.program in ("load", "write"):
+    if args.program in ("write"):
         load_program(sys.argv[2:])
