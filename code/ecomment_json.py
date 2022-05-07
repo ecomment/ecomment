@@ -237,7 +237,6 @@ stdout."""
         in_data = sys.stdin.read()
     else:
         assert os.path.exists(args.in_file), f"Cannot file file at '{args.in_file}'."
-        assert os.path.exists(args.in_file), f"Cannot "
         with open(args.in_file, "r") as f:
             in_data = f.read()
 
