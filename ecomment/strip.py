@@ -34,7 +34,7 @@ class Comment:
 
 
 def strip_file(
-    file_content: str, before_context: int = 5, after_context: int = 5, filename: Optional[str] = None
+    file_content: str, context: int = 5, filename: Optional[str] = None
 ) -> Tuple[Dict[str, dict], str]:
     """Strip the ecomments out of a file.
 
@@ -42,10 +42,8 @@ def strip_file(
     ----------
     file_content : str
         A string with the contents of the file to strip the ecomments of.
-    before_context : int
-        The number of lines before the comment to save as context.
-    active_context : int
-        The number of lines after the comment to save as context.
+    context : int
+        The number of lines before and after the comment to save as context.
     filename : Optional[str], None
         The name of the file to save in the metadata.
 
@@ -67,7 +65,7 @@ def strip_file(
                 content_start = match.group(1)
                 comments.append(
                     Comment(
-                        before_context="\n".join(line[max(index - before_context, 0) : index]),
+                        before_context="\n".join(line[max(index - context, 0) : index]),
                         line_number=index,
                         content=[] if content_start.strip() == "" else [content_start],
                         after_context="",
@@ -86,10 +84,10 @@ def strip_file(
                     continue
                 comments.append(
                     Comment(
-                        before_context="\n".join(line[max(index - before_context, 0) : index]),
+                        before_context="\n".join(line[max(index - context, 0) : index]),
                         line_number=index,
                         content=[content_start],
-                        after_context="\n".join(line[index + 1 : index + 1 + after_context]),
+                        after_context="\n".join(line[index + 1 : index + 1 + context]),
                         type="inline",
                     )
                 )
@@ -106,7 +104,7 @@ def strip_file(
                 state = "in_start_end_ecomment"
                 comments.append(
                     Comment(
-                        before_context="\n".join(line[max(index - before_context, 0) : index]),
+                        before_context="\n".join(line[max(index - context, 0) : index]),
                         line_number=index,
                         content=[],
                         after_context="",
@@ -121,7 +119,7 @@ def strip_file(
             comment_match = comment_line_regex.match(line)
             if comment_match is None:
                 state = "outside_comments"
-                comments[-1].after_context = "\n".join(line[index + 1 : index + 1 + after_context])
+                comments[-1].after_context = "\n".join(line[index + 1 : index + 1 + context])
             else:
                 content = comment_match.group(1)
                 comments[-1].content.append(content)
@@ -133,7 +131,7 @@ def strip_file(
             content = comment_match.group(1)
             if content.startswith("@ecomment-end"):
                 state = "outside_comments"
-                comments[-1].after_context = "\n".join(line[index + 1 : index + 1 + after_context])
+                comments[-1].after_context = "\n".join(line[index + 1 : index + 1 + context])
             else:
                 comments[-1].content.append(content)
 

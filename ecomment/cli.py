@@ -10,25 +10,15 @@ import os
 from . import strip, convert
 
 
-CONTEXT_DEFAULT = 5
-UNSET_CONTEXT = -1
-
-
 def read_program(cli_args):
     # Parse the command line arguments.
     parser = argparse.ArgumentParser(prog="ecomment strip")
     parser.add_argument("file", nargs="+")
     parser.add_argument(
-        "-b", "--before", type=int, default=UNSET_CONTEXT, help="Number of lines to include before the comment"
-    )
-    parser.add_argument(
-        "-a", "--after", type=int, default=UNSET_CONTEXT, help="Number of lines to include after the comment"
-    )
-    parser.add_argument(
         "-c",
         "--context",
         type=int,
-        default=UNSET_CONTEXT,
+        default=5,
         help="Number of lines to include before and after the comment",
     )
     parser.add_argument("-o", "--output", type=str, default=None, help="Output file")
@@ -36,16 +26,11 @@ def read_program(cli_args):
     parser.add_argument("-s", "--strip", action="store_true", help="Strip the comments out of the files.")
     args = parser.parse_args(cli_args)
 
-    # Deduce the context size to save.
-    default_context = args.context if args.context != UNSET_CONTEXT else CONTEXT_DEFAULT
-    before_context = args.before if args.before != UNSET_CONTEXT else default_context
-    after_context = args.after if args.after != UNSET_CONTEXT else default_context
-
     # Strip the ecomments from the files.
     ecomments = []
     for file in args.file:
         with open(file, "r") as f:
-            ecomments_json, stripped_content = strip.strip_file(f.read(), before_context, after_context, file)
+            ecomments_json, stripped_content = strip.strip_file(f.read(), args.context, file)
         if args.strip:
             with open(file, "w") as f:
                 f.write(stripped_content)

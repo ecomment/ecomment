@@ -59,7 +59,7 @@ while True:
 
 
 def test_strip_file():
-    ecomments, stripped_file = strip_file(example_file, before_context=5, after_context=5, filename="example.py")
+    ecomments, stripped_file = strip_file(example_file, context=5, filename="example.py")
     assert stripped_file == stripped_example_file
     print(json.dumps(ecomments, indent=4))
     print(json_to_markup(ecomments))
