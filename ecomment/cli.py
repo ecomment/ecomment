@@ -7,8 +7,7 @@ from json.decoder import JSONDecodeError
 import sys
 import os
 
-import strip
-import convert
+from . import strip, convert
 
 
 CONTEXT_DEFAULT = 5
@@ -142,4 +141,6 @@ def main():
 
 
 if __name__ == "__main__":
+    # Run with `python -m ecomment.cli` from the root directory of the repository.
+    # See https://stackoverflow.com/questions/72852/how-to-do-relative-imports-in-python
     main()
