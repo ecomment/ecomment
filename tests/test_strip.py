@@ -1,7 +1,7 @@
 import json
 
-from ecomment_json import json_to_markup
-from strip_ecomment import strip_file
+from convert import json_to_markup
+from strip import strip_file
 
 
 example_file = """
