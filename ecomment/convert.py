@@ -1,8 +1,8 @@
 import re
-from typing import Any
+from typing import Any, Dict
 
 
-def json_to_markup(json_data: dict[str, Any]):
+def json_to_markup(json_data: Dict[str, Any]):
     markup = ""
     for file in json_data["files"]:
         markup += "FILE_INFO\n\n"

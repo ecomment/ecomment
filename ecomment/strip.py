@@ -3,7 +3,7 @@ A function for stripping ecomment files.
 """
 import re
 from dataclasses import dataclass
-from typing import Literal, Optional
+from typing import Literal, Optional, List, Tuple, Dict
 
 # There are obviously edge cases that this does not solve.
 # But for now I just want to get it working.
@@ -19,7 +19,7 @@ ecomment_end_regex = re.compile(r"\s*#\s*@ecomment-end")
 class Comment:
     before_context: str
     line_number: int
-    content: list[str]
+    content: List[str]
     after_context: str
     type: Literal["inline", "multiline", "start_end"]
 
@@ -35,7 +35,7 @@ class Comment:
 
 def strip_file(
     file_content: str, before_context: int = 5, after_context: int = 5, filename: Optional[str] = None
-) -> tuple[dict[str, dict], str]:
+) -> Tuple[Dict[str, dict], str]:
     """Strip the ecomments out of a file.
 
     Parameters
