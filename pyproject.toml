@@ -1,5 +1,5 @@
 [tool.pyright]
-extraPaths = ["code"]
+extraPaths = ["ecomment"]
 
 
 [tool.black]
@@ -16,3 +16,28 @@ skip_gitignore=true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+
+[tool.poetry]
+name = "ecomment"
+version = "0.1.0"
+description = "Comments want to be free."
+authors = ["Jeremiah England <englandtuning@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/ecomment/ecomment"
+documentation = "https://github.com/ecomment/ecomment/tree/master/README.md"
+keywords = ["comment", "cli", "tool", "workflow"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+
+[tool.poetry.dev-dependencies]
+pytest = "*"
+
+[tool.poetry.scripts]
+ecomment = "ecomment.cli"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

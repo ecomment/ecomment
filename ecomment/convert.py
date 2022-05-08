@@ -1,9 +1,4 @@
-import argparse
-import json
-import os
 import re
-import sys
-from json.decoder import JSONDecodeError
 from typing import Any
 
 
@@ -195,59 +190,3 @@ def markup_to_json(markup: str):
             break
 
     return json_data
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="""Convert ecomment markup file and json file formats.
-
-The CLI is partiall inspired from pandoc.
-
-The input file type is infered. The output file type is the opposite of the input type.
-That is, `ecomment-json -i input.ecomment` will write the json version of that file to
-stdout."""
-    )
-
-    parser.add_argument(
-        "-i",
-        "--in",
-        desc="A path to an existing ecomment json or markup file. If not provided it will be read from stdin.",
-        dest="in_file",
-        type=str,
-        nargs="?",
-        required=False,
-    )
-
-    parser.add_argument(
-        "-o",
-        "--out",
-        dest="out_file",
-        desc="A path to write the resulting ecomment json or markup file. If not provided, the result will be written to stdout.",
-        type=str,
-        nargs="?",
-        required=False,
-    )
-
-    args = parser.parse_args()
-
-    if args.out_file is not None:
-        assert os.path.exists(args.out_file)
-
-    if args.in_file is None:
-        in_data = sys.stdin.read()
-    else:
-        assert os.path.exists(args.in_file), f"Cannot file file at '{args.in_file}'."
-        with open(args.in_file, "r") as f:
-            in_data = f.read()
-
-    try:
-        in_json = json.loads(in_data)
-        out_data = json_to_markup(in_json)
-    except JSONDecodeError as e:
-        out_data = json.dumps(markup_to_json(in_data))
-
-    if args.out_file is None:
-        print(out_data)
-    else:
-        with open(args.out_file, "w") as f:
-            f.write(out_data)

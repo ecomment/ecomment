@@ -3,9 +3,12 @@ Strip ecomments out of a Python file and send them to an ecomment file.
 """
 import argparse
 import json
+from json.decoder import JSONDecodeError
 import sys
-from strip_ecomment import strip_file
-from ecomment_json import json_to_markup
+import os
+
+import strip
+import convert
 
 
 CONTEXT_DEFAULT = 5
@@ -43,7 +46,7 @@ def read_program(cli_args):
     ecomments = []
     for file in args.file:
         with open(file, "r") as f:
-            ecomments_json, stripped_content = strip_file(f.read(), before_context, after_context, file)
+            ecomments_json, stripped_content = strip.strip_file(f.read(), before_context, after_context, file)
         if args.strip:
             with open(file, "w") as f:
                 f.write(stripped_content)
@@ -53,7 +56,7 @@ def read_program(cli_args):
     if args.json:
         formatted_output = json.dumps(ecomments, indent=4)
     else:
-        markup_ecomments = [json_to_markup(ecomment) for ecomment in ecomments]
+        markup_ecomments = [convert.json_to_markup(ecomment) for ecomment in ecomments]
         formatted_output = "\n\n".join(markup_ecomments)
 
     # Write ecomments to file or print to stdout.
@@ -68,13 +71,75 @@ def load_program(cli_rgs):
     pass
 
 
-if __name__ == "__main__":
+def convert_program(cli_args):
+    parser = argparse.ArgumentParser(
+        description="""Convert ecomment markup file and json file formats.
+
+The CLI is partiall inspired from pandoc.
+
+The input file type is infered. The output file type is the opposite of the input type.
+That is, `ecomment-json -i input.ecomment` will write the json version of that file to
+stdout."""
+    )
+
+    parser.add_argument(
+        "-i",
+        "--in",
+        desc="A path to an existing ecomment json or markup file. If not provided it will be read from stdin.",
+        dest="in_file",
+        type=str,
+        nargs="?",
+        required=False,
+    )
+
+    parser.add_argument(
+        "-o",
+        "--out",
+        dest="out_file",
+        desc="A path to write the resulting ecomment json or markup file. If not provided, the result will be written to stdout.",
+        type=str,
+        nargs="?",
+        required=False,
+    )
+
+    args = parser.parse_args(cli_args)
+
+    if args.out_file is not None:
+        assert os.path.exists(args.out_file)
+
+    if args.in_file is None:
+        in_data = sys.stdin.read()
+    else:
+        assert os.path.exists(args.in_file), f"Cannot file at '{args.in_file}'."
+        with open(args.in_file, "r") as f:
+            in_data = f.read()
+
+    try:
+        in_json = json.loads(in_data)
+        out_data = convert.json_to_markup(in_json)
+    except JSONDecodeError as e:
+        out_data = json.dumps(convert.markup_to_json(in_data))
+
+    if args.out_file is None:
+        print(out_data)
+    else:
+        with open(args.out_file, "w") as f:
+            f.write(out_data)
+
+
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("program", help="strip, read, or load/write")
     args = parser.parse_args(sys.argv[1:2])
 
-    assert args.program in ("read", "write")
+    assert args.program in ("read", "write", "convert")
     if args.program == "read":
         read_program(sys.argv[2:])
-    if args.program in ("write"):
+    elif args.program == "write":
         load_program(sys.argv[2:])
+    elif args.program == "convert":
+        convert_program(sys.argv[2:])
+
+
+if __name__ == "__main__":
+    main()
