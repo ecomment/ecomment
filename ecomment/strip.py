@@ -9,7 +9,7 @@ from typing import Literal, Optional, List, Tuple, Dict
 # But for now I just want to get it working.
 multiline_regex = re.compile(r"\s*#\s*ecomment:[ ]?(.*)")
 inline_regex = re.compile(r".*#\s*ecomment:[ ]?(.*)")
-inline_regex_striper = re.compile(r".*(\s*#\s*ecomment:[ ]?.*)")
+inline_regex_striper = re.compile(r"\s*#\s*ecomment:[ ]?.*$")
 comment_line_regex = re.compile(r"\s*#[ ]?(.*)")
 ecomment_start_regex = re.compile(r"\s*#\s*@ecomment-start")
 ecomment_end_regex = re.compile(r"\s*#\s*@ecomment-end")
@@ -93,10 +93,9 @@ def strip_file(
                 )
                 # No need to update the state since we return to the previous state immediately.
                 # But we do need to strip the rest of this line out and append to striped_lines.
-                striper_match = inline_regex_striper.match(line)
-                assert striper_match is not None
-                to_strip = striper_match.group(1)
-                striped_lines.append(line.removesuffix(to_strip))
+                striper_matches = re.findall(inline_regex_striper, line)
+                assert len(striper_matches) == 1
+                striped_lines.append(line.removesuffix(striper_matches[0]))
                 continue
 
             match = ecomment_start_regex.match(line)
