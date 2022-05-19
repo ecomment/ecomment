@@ -18,7 +18,7 @@ ecomment_end_regex = re.compile(r"\s*#\s*@ecomment-end")
 @dataclass
 class Comment:
     before_context: str
-    line_number: int
+    line: int
     content: List[str]
     after_context: str
     type: Literal["inline", "multiline", "start_end"]
@@ -26,8 +26,8 @@ class Comment:
     def json(self):
         return {
             "before_context": self.before_context,
-            "line_number": self.line_number,
-            "content": self.content,
+            "line": self.line,
+            "content": '\n'.join(self.content),
             "after_context": self.after_context,
             "type": self.type,
         }
@@ -66,7 +66,7 @@ def strip_file(
                 comments.append(
                     Comment(
                         before_context="\n".join(lines[max(index - context, 0) : index]),
-                        line_number=index,
+                        line=index,
                         content=[] if content_start.strip() == "" else [content_start],
                         after_context="",
                         type="multiline",
@@ -85,7 +85,7 @@ def strip_file(
                 comments.append(
                     Comment(
                         before_context="\n".join(line[max(index - context, 0) : index]),
-                        line_number=index,
+                        line=index,
                         content=[content_start],
                         after_context="\n".join(line[index + 1 : index + 1 + context]),
                         type="inline",
@@ -104,7 +104,7 @@ def strip_file(
                 comments.append(
                     Comment(
                         before_context="\n".join(lines[max(index - context, 0) : index]),
-                        line_number=index,
+                        line=index,
                         content=[],
                         after_context="",
                         type="start_end",
