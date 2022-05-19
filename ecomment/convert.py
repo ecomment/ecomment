@@ -13,12 +13,20 @@ def json_to_markup(json_data: Dict[str, Any]):
                 value, (str, int, float)
             ), f"File header info should be simple data (i.e. not like a list): key={key}, value={value}"
             value = str(value)
-            assert "\n" not in value, f"File header values should have have newlines: key={key}, value={value}"
+            assert (
+                "\n" not in value
+            ), f"File header values should have have newlines: key={key}, value={value}"
 
             # Verify header key
-            assert isinstance(key, str), f"File header keys should be strings: key={key}"
-            assert "\n" not in value, f"File header values should have have newlines: key={key}, value={value}"
-            assert ":" not in key, f"File header keys cannot contain colon (:) characters: key={key}"
+            assert isinstance(
+                key, str
+            ), f"File header keys should be strings: key={key}"
+            assert (
+                "\n" not in value
+            ), f"File header values should have have newlines: key={key}, value={value}"
+            assert (
+                ":" not in key
+            ), f"File header keys cannot contain colon (:) characters: key={key}"
 
             markup += f"{key}: {value}\n"
         markup += "\n"
@@ -28,7 +36,8 @@ def json_to_markup(json_data: Dict[str, Any]):
             markup += f"line: {int(comment['line'])}\n"
             if "format" in comment:
                 markup += f"format: {comment['format']}\n"
-            markup += "\n"  # Extra line to between comment metadata and context/content.
+            # Extra line to between comment metadata and context/content.
+            markup += "\n"
             if "before-context" in comment:
                 assert isinstance(comment["before-context"], str)
                 lines = comment["before-context"].split("\n")
@@ -52,7 +61,8 @@ def json_to_markup(json_data: Dict[str, Any]):
                     markup += f">  {line}\n"
 
             markup += "-- END COMMENT --\n\n"
-    return markup.strip() + "\n"  # Make sure there is just one new line at the end of the file.
+    # Make sure there is just one new line at the end of the file.
+    return markup.strip() + "\n"
 
 
 def markup_to_json(markup: str):
@@ -120,10 +130,14 @@ def markup_to_json(markup: str):
                 state = "in_comment_content"
             elif line.startswith("line:"):
                 assert "line" not in json_data["files"][-1]["comments"][-1]
-                json_data["files"][-1]["comments"][-1]["line"] = ":".join(line.split(":")[1:]).strip()
+                json_data["files"][-1]["comments"][-1]["line"] = ":".join(
+                    line.split(":")[1:]
+                ).strip()
             elif line.startswith("format:"):
                 assert "format" not in json_data["files"][-1]["comments"][-1]
-                json_data["files"][-1]["comments"][-1]["format"] = ":".join(line.split(":")[1:]).strip()
+                json_data["files"][-1]["comments"][-1]["format"] = ":".join(
+                    line.split(":")[1:]
+                ).strip()
             elif not line.strip():
                 pass
             else:

@@ -27,7 +27,7 @@ class Comment:
         return {
             "before_context": self.before_context,
             "line": self.line,
-            "content": '\n'.join(self.content),
+            "content": "\n".join(self.content),
             "after_context": self.after_context,
             "type": self.type,
         }
@@ -63,9 +63,10 @@ def strip_file(
             match = multiline_regex.match(line)
             if match is not None:
                 content_start = match.group(1)
+                before_context = "\n".join(lines[max(index - context, 0) : index])
                 comments.append(
                     Comment(
-                        before_context="\n".join(lines[max(index - context, 0) : index]),
+                        before_context=before_context,
                         line=index,
                         content=[] if content_start.strip() == "" else [content_start],
                         after_context="",
@@ -103,7 +104,9 @@ def strip_file(
                 state = "in_start_end_ecomment"
                 comments.append(
                     Comment(
-                        before_context="\n".join(lines[max(index - context, 0) : index]),
+                        before_context="\n".join(
+                            lines[max(index - context, 0) : index]
+                        ),
                         line=index,
                         content=[],
                         after_context="",
@@ -118,8 +121,11 @@ def strip_file(
             comment_match = comment_line_regex.match(line)
             if comment_match is None:
                 state = "outside_comments"
-                comments[-1].after_context = "\n".join(lines[index + 1 : index + 1 + context])
-                striped_lines.append(line)  # TODO: Need to reprocess this line. May contain an inline comment.
+                comments[-1].after_context = "\n".join(
+                    lines[index + 1 : index + 1 + context]
+                )
+                # TODO: Need to reprocess this line. May contain an inline comment.
+                striped_lines.append(line)
             else:
                 content = comment_match.group(1)
                 comments[-1].content.append(content)
@@ -131,7 +137,9 @@ def strip_file(
             content = comment_match.group(1)
             if content.startswith("@ecomment-end"):
                 state = "outside_comments"
-                comments[-1].after_context = "\n".join(lines[index + 1 : index + 1 + context])
+                comments[-1].after_context = "\n".join(
+                    lines[index + 1 : index + 1 + context]
+                )
             else:
                 comments[-1].content.append(content)
 
