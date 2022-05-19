@@ -23,14 +23,21 @@ def read_program(cli_args):
     )
     parser.add_argument("-o", "--output", type=str, default=None, help="Output file")
     parser.add_argument("-j", "--json", action="store_true", help="Output JSON")
-    parser.add_argument("-s", "--strip", action="store_true", help="Strip the comments out of the files.")
+    parser.add_argument(
+        "-s",
+        "--strip",
+        action="store_true",
+        help="Strip the comments out of the files.",
+    )
     args = parser.parse_args(cli_args)
 
     # Strip the ecomments from the files.
     ecomments = []
     for file in args.file:
         with open(file, "r") as f:
-            ecomments_json, stripped_content = strip.strip_file(f.read(), args.context, file)
+            ecomments_json, stripped_content = strip.strip_file(
+                f.read(), args.context, file
+            )
         if args.strip:
             with open(file, "w") as f:
                 f.write(stripped_content)
