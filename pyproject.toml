@@ -19,7 +19,7 @@ testpaths = ["tests"]
 
 [tool.poetry]
 name = "ecomment"
-version = "0.1.0"
+version = "0.1.1"
 description = "Comments want to be free."
 authors = ["Jeremiah England <englandtuning@gmail.com>"]
 license = "MIT"
