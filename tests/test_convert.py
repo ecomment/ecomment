@@ -1,4 +1,4 @@
-from convert import json_to_markup, markup_to_json
+from ecomment.convert import json_to_markup, markup_to_json
 
 example_ecomment = """
 FILE_INFO
