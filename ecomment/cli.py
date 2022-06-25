@@ -43,11 +43,13 @@ def read_program(cli_args):
                 f.write(stripped_content)
         ecomments.append(ecomments_json)
 
+    ecomments_json = {"files": ecomments}
+
     # Format ecomments as markdown or JSON text.
     if args.json:
-        formatted_output = json.dumps(ecomments, indent=4)
+        formatted_output = json.dumps(ecomments_json, indent=4)
     else:
-        formatted_output = convert.json_to_markup({"files": ecomments})
+        formatted_output = convert.json_to_markup(ecomments_json)
 
     # Write ecomments to file or print to stdout.
     if args.output:
