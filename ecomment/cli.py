@@ -47,8 +47,7 @@ def read_program(cli_args):
     if args.json:
         formatted_output = json.dumps(ecomments, indent=4)
     else:
-        markup_ecomments = [convert.json_to_markup(ecomment) for ecomment in ecomments]
-        formatted_output = "\n\n".join(markup_ecomments)
+        formatted_output = convert.json_to_markup({"files": ecomments})
 
     # Write ecomments to file or print to stdout.
     if args.output:
