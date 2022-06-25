@@ -84,9 +84,9 @@ def test_markup_to_json_no_fail():
     assert len(json["files"]) == 1
     file = json["files"][0]
     assert len(file["comments"]) == 3
-    assert file["file-data"]["filename"] == "test.txt"
-    assert file["file-data"]["filehash"] == "24329wfpoijr3aw90843489"
-    assert file["file-data"]["gitcommit"] == "1230498uij4nq3wfe4frq3k40q39o8uir"
+    assert file["file_data"]["filename"] == "test.txt"
+    assert file["file_data"]["filehash"] == "24329wfpoijr3aw90843489"
+    assert file["file_data"]["gitcommit"] == "1230498uij4nq3wfe4frq3k40q39o8uir"
     assert (
         file["comments"][-1]["content"]
         == """

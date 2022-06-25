@@ -147,11 +147,11 @@ def strip_file(
             raise ValueError(f"Unknown state: {state}")
 
     ecomment_file_json = {
-        "file-data": {},
+        "file_data": {},
         "comments": [comment.json() for comment in comments],
     }
 
     if filename is not None:
-        ecomment_file_json["file-data"]["filename"] = filename
+        ecomment_file_json["file_data"]["filename"] = filename
 
     return ecomment_file_json, "\n".join(striped_lines)
