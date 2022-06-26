@@ -6,7 +6,7 @@ def json_to_markup(json_data: Dict[str, Any]):
     markup = ""
     for file in json_data["files"]:
         markup += "FILE_INFO\n\n"
-        for key, value in file["file-data"].items():
+        for key, value in file["file_data"].items():
 
             # Verify and stringify value.
             assert isinstance(
@@ -92,7 +92,7 @@ def markup_to_json(markup: str):
 
         elif state == "between_files":
             if line == "FILE_INFO":
-                json_data["files"].append({"comments": [], "file-data": {}})
+                json_data["files"].append({"comments": [], "file_data": {}})
                 state = "in_file_data"
             else:
                 assert not line.strip()  # Line should be empty.
@@ -108,8 +108,8 @@ def markup_to_json(markup: str):
                 header_name = match.group(1).strip()
                 header_value = match.group(2).strip()
                 # There should not be duplicate filenames.
-                assert header_name not in json_data["files"][-1]["file-data"]
-                json_data["files"][-1]["file-data"][header_name] = header_value
+                assert header_name not in json_data["files"][-1]["file_data"]
+                json_data["files"][-1]["file_data"][header_name] = header_value
             else:
                 raise ValueError(f"Invalid line in the FILE_INFO section: {line}")
 
