@@ -82,3 +82,22 @@ def test_strip_line_numbers():
     assert sorted_comments[0]["line"] == 2
     assert sorted_comments[1]["line"] == 8
     assert sorted_comments[2]["line"] == 18
+
+
+def test_inline_context():
+    """Test that the before and after contexts are correct in the inline case.
+
+    Before, we were indexing into the current 'line' object instead of the
+    'lines' object to get the before and after context when processing inline
+    comments. That resulted in each "line" of context being only one character.
+    """
+    ecomments, _ = strip_file(example_file, context=5, filename="example.py")
+    inline_comments = [
+        comment for comment in ecomments["comments"] if comment["type"] == "inline"
+    ]
+    assert len(inline_comments) == 1
+
+    assert inline_comments[0]["before_context"] == ""
+    assert inline_comments[0]["after_context"] == (
+        "\n\ngrid = []\nfor x in range(100):\n    for y in range(100):"
+    )
