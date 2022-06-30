@@ -67,7 +67,7 @@ def strip_file(
                 comments.append(
                     Comment(
                         before_context=before_context,
-                        line=index,
+                        line=len(striped_lines),
                         content=[] if content_start.strip() == "" else [content_start],
                         after_context="",
                         type="multiline",
@@ -86,7 +86,7 @@ def strip_file(
                 comments.append(
                     Comment(
                         before_context="\n".join(line[max(index - context, 0) : index]),
-                        line=index,
+                        line=len(striped_lines) + 1,  # +1 for current line not previous
                         content=[content_start],
                         after_context="\n".join(line[index + 1 : index + 1 + context]),
                         type="inline",
@@ -107,7 +107,7 @@ def strip_file(
                         before_context="\n".join(
                             lines[max(index - context, 0) : index]
                         ),
-                        line=index,
+                        line=len(striped_lines),
                         content=[],
                         after_context="",
                         type="start_end",
