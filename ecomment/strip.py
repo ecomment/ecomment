@@ -55,7 +55,7 @@ def strip_file(
         The file content striped of the ecomments.
     """
     state = "outside_comments"
-    comments = []
+    comments: List[Comment] = []
     lines = file_content.split("\n")
     striped_lines = []
     for index, line in enumerate(lines):
