@@ -65,3 +65,20 @@ def test_strip_file():
     assert stripped_file == stripped_example_file
     print(json.dumps(ecomments, indent=4))
     print(json_to_markup({"files": [ecomments]}))
+
+
+def test_strip_line_numbers():
+    """Test that the line number associated with each comment is correct.
+
+    Historically, the line number included lines that were added to the file in
+    ecomments further up. But we want the line number in the original file, not
+    the file with ecomments added to it. This tests that our line numbers
+    associate with the original, un-commented file.
+    """
+    ecomments, _ = strip_file(example_file, context=5, filename="example.py")
+    assert len(ecomments["comments"]) == 3
+
+    sorted_comments = sorted(ecomments["comments"], key=lambda comment: comment["line"])
+    assert sorted_comments[0]["line"] == 2
+    assert sorted_comments[1]["line"] == 8
+    assert sorted_comments[2]["line"] == 18
