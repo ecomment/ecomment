@@ -1,5 +1,4 @@
 from ecomment.cli import read_program
-from ecomment.convert import markup_to_json
 
 import contextlib
 import io
@@ -13,6 +12,5 @@ def test_read_inline():
         read_program(cli_args)
 
     inline_example_markup = string_io.getvalue()
-    markup_to_json(inline_example_markup)
-    # TODO: Assert that the results are what we expect, rather than just fail
-    # if they are completely mis-formatted.
+    with open("tests/example-files/inline.ecomment", "r") as f:
+        assert inline_example_markup == f.read()
