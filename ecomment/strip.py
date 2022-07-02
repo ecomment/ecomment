@@ -83,7 +83,9 @@ def strip_file(
                 if content_start.strip() == "":
                     print(f"Inline ecomment without content: {line}.")
                     continue
-                before_context = "\n".join(lines[max(index - context, 0) : index])
+                before_context = "\n".join(
+                    lines[max(index + 1 - context, 0) : index + 1]
+                )
                 after_context = "\n".join(lines[index + 1 : index + 1 + context])
                 comments.append(
                     Comment(
