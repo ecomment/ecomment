@@ -97,7 +97,11 @@ def test_inline_context():
     ]
     assert len(inline_comments) == 1
 
-    assert inline_comments[0]["before_context"] == ""
+    assert inline_comments[0]["before_context"] == (
+        "\n"
+        "from shapely.ops import Point  "
+        "# ecomment: This should be imported from `shapely.geometry` instead."
+    )
     assert inline_comments[0]["after_context"] == (
         "\n\ngrid = []\nfor x in range(100):\n    for y in range(100):"
     )

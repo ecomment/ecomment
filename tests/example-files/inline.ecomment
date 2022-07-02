@@ -8,10 +8,10 @@ COMMENTS
 line: 10
 
 >  
->  
 >  normal_distribution = statistics.NormalDist(mu=0, sigma=1)
 >  
->> for i in range(-100, 100):
+>  for i in range(-100, 100):
+>>     assert normal_distribution.zscore(i) == i  # ecomment: Why do they call it a z-score?
 ------------------------------------------------------------------------
   Why do they call it a z-score?
 ------------------------------------------------------------------------
