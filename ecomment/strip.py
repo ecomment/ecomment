@@ -55,7 +55,7 @@ def strip_file(
         The file content striped of the ecomments.
     """
     state = "outside_comments"
-    comments = []
+    comments: List[Comment] = []
     lines = file_content.split("\n")
     striped_lines = []
     for index, line in enumerate(lines):
@@ -83,12 +83,16 @@ def strip_file(
                 if content_start.strip() == "":
                     print(f"Inline ecomment without content: {line}.")
                     continue
+                before_context = "\n".join(
+                    lines[max(index + 1 - context, 0) : index + 1]
+                )
+                after_context = "\n".join(lines[index + 1 : index + 1 + context])
                 comments.append(
                     Comment(
-                        before_context="\n".join(line[max(index - context, 0) : index]),
+                        before_context=before_context,
                         line=len(striped_lines) + 1,  # +1 for current line not previous
                         content=[content_start],
-                        after_context="\n".join(line[index + 1 : index + 1 + context]),
+                        after_context=after_context,
                         type="inline",
                     )
                 )

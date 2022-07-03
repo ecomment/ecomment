@@ -38,9 +38,9 @@ def json_to_markup(json_data: Dict[str, Any]):
                 markup += f"format: {comment['format']}\n"
             # Extra line to between comment metadata and context/content.
             markup += "\n"
-            if "before-context" in comment:
-                assert isinstance(comment["before-context"], str)
-                lines = comment["before-context"].split("\n")
+            if "before_context" in comment:
+                assert isinstance(comment["before_context"], str)
+                lines = comment["before_context"].split("\n")
                 for line in lines[:-1]:
                     markup += f">  {line}\n"
                 markup += f">> {lines[-1]}\n"
@@ -53,10 +53,10 @@ def json_to_markup(json_data: Dict[str, Any]):
                 markup += f"  {line}\n"
             markup += "------------------------------------------------------------------------\n"
 
-            # Add the after-context
-            if "after-context" in comment:
-                assert isinstance(comment["after-context"], str)
-                lines = comment["after-context"].split("\n")
+            # Add the after_context
+            if "after_context" in comment:
+                assert isinstance(comment["after_context"], str)
+                lines = comment["after_context"].split("\n")
                 for line in lines:
                     markup += f">  {line}\n"
 
@@ -147,10 +147,10 @@ def markup_to_json(markup: str):
             if line.startswith(">"):
                 comment = json_data["files"][-1]["comments"][-1]
                 line_data = line[3:]  # Strip off '>  ' or '>> ' from the begining.
-                if "before-context" in comment:
-                    comment["before-context"] += "\n" + line_data
+                if "before_context" in comment:
+                    comment["before_context"] += "\n" + line_data
                 else:
-                    comment["before-context"] = line_data
+                    comment["before_context"] = line_data
             elif line.startswith("-"):
                 state = "in_comment_content"
             else:
@@ -184,10 +184,10 @@ def markup_to_json(markup: str):
             if line.startswith(">"):
                 comment = json_data["files"][-1]["comments"][-1]
                 line_data = line[3:]  # Strip off '>  ' or '>> ' from the begining.
-                if "after-context" in comment:
-                    comment["after-context"] += "\n" + line_data
+                if "after_context" in comment:
+                    comment["after_context"] += "\n" + line_data
                 else:
-                    comment["after-context"] = line_data
+                    comment["after_context"] = line_data
             elif line.strip() == "-- END COMMENT --":
                 state = "in_comments"
             elif not line.strip():
