@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use default line length for Black formatting instead of 120.
 ### Fixed
 - Fix bugs in `ecomment.strip` so it passes the tests.
+
 ## [0.1.2] - 2022-06-25
 ### Added
 - Initial test for `ecomment read` cli command.
@@ -18,3 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Return files in 'files' from 'read' to make the response valid json.
 - Remove extra newlines from markup output.
+
+## [0.1.3] - 2022-07-02
+### Fixed
+- Save inline commented line to before context instead of just leaving it off.
+- Get context from 'lines' instead of 'line'. It was just grabing characters at
+  the beginning and the end of the current line before.
+### Changed
+- Use underscores in context json keys to be more compatible with Javascript
+  and some other languages that parse json into objects.
